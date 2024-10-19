@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import JobListing from './JobListing';
 import Spinner from './Spinner';
+import axios from 'axios'
 
 const JobListings = ({ isHome = false }) => {
   const [jobs, setJobs] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(0);
+  const limit = 3;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      const apiUrl = isHome ? '/api/jobs?_limit=3' : '/api/jobs';
+    const fetchJobs = async (page) => {
+      const apiUrl = isHome ? `http://localhost:5000/api/v1/jobs?page=${page}&limit=${limit}` : `http://localhost:5000/api/v1/jobs`;
       try {
-        const res = await fetch(apiUrl);
-        const data = await res.json();
-        setJobs(data);
+        const res = await axios.get(apiUrl);
+        setJobs(res.data.jobs);
+        setTotalPages(res.data.totalPages);
       } catch (error) {
         console.log('Error fetching data', error);
       } finally {
@@ -20,8 +24,12 @@ const JobListings = ({ isHome = false }) => {
       }
     };
 
-    fetchJobs();
-  }, []);
+    fetchJobs(currentPage);
+  }, [currentPage]);
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
 
   return (
     <section className='bg-blue-50 px-4 py-10'>
@@ -35,11 +43,13 @@ const JobListings = ({ isHome = false }) => {
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
             {jobs.map((job) => (
-              <JobListing key={job.id} job={job} />
+              <JobListing key={job._id} job={job} />
             ))}
+            
           </div>
         )}
       </div>
+      
     </section>
   );
 };

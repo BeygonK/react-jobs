@@ -1,8 +1,9 @@
+import axios from 'axios';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
-const AddJobPage = ({ addJobSubmit }) => {
+const AddJobPage = () => {
   const [title, setTitle] = useState('');
   const [type, setType] = useState('Full-Time');
   const [location, setLocation] = useState('');
@@ -13,37 +14,59 @@ const AddJobPage = ({ addJobSubmit }) => {
   const [contactEmail, setContactEmail] = useState('');
   const [contactPhone, setContactPhone] = useState('');
 
+
   const navigate = useNavigate();
 
-  const submitForm = (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault(); // Prevent default form submission
 
-    const newJob = {
+  const apiUrl = 'http://localhost:5000/api/v1/jobs'; // Your API endpoint
+
+  try {
+    const sessionId = localStorage.getItem('sessionId'); // Get sessionId from localStorage
+
+    // Send POST request to create a new job
+    const response = await axios.post(apiUrl, {
       title,
       type,
       location,
       description,
       salary,
-      company: {
-        name: companyName,
-        description: companyDescription,
-        contactEmail,
-        contactPhone,
+      companyName,
+      companyDescription,
+      contactEmail,
+      contactPhone,
+      userId: sessionId, // Use sessionId as userId
+    }, {
+      headers: {
+        'Content-Type': 'application/json',
+        'session': sessionId, // Include sessionId in headers if needed
       },
-    };
+    });
 
-    addJobSubmit(newJob);
-
+    // Show success toast message
     toast.success('Job Added Successfully');
 
-    return navigate('/jobs');
-  };
+    // Redirect to the jobs page
+    navigate('/jobs');
 
-  return (
+  } catch (err) {
+    // Handle error response
+    if (err.response && err.response.data && err.response.data.message) {
+      toast.error(err.response.data.message); // Show error message from backend
+    } else {
+      toast.error('Failed to add job. Please try again.'); // General error message
+    }
+    console.error(err); // Log the error for debugging
+  }
+};
+
+
+return (
     <section className='bg-indigo-50'>
       <div className='container m-auto max-w-2xl py-24'>
         <div className='bg-white px-6 py-8 mb-4 shadow-md rounded-md border m-4 md:m-0'>
-          <form onSubmit={submitForm}>
+          <form onSubmit={handleSubmit}>
             <h2 className='text-3xl text-center font-semibold mb-6'>Add Job</h2>
 
             <div className='mb-4'>
@@ -222,7 +245,7 @@ const AddJobPage = ({ addJobSubmit }) => {
 
             <div>
               <button
-                className='bg-indigo-500 hover:bg-indigo-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline'
+                className='bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full w-full focus:outline-none focus:shadow-outline'
                 type='submit'
               >
                 Add Job

@@ -6,12 +6,20 @@ import Footer from '../components/Footer';
 
 const MainLayout = () => {
   return (
-    <>
+    <div className="flex flex-col min-h-screen">
+      {/* Navbar */}
       <Navbar />
-      <Outlet />
-      <ToastContainer />
-      <Footer/>
-    </>
+
+      {/* Main content area, grows to take up available space */}
+      <main className="flex-grow">
+        <Outlet />
+        <ToastContainer />
+      </main>
+
+      {/* Footer always at the bottom */}
+      <Footer />
+    </div>
   );
 };
+
 export default MainLayout;
